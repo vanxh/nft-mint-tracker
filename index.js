@@ -50,7 +50,7 @@ const onMintEvent = async (e) => {
             maxCount: 5,
         });
 
-        const transfer = data.find((t) => t.hash === txHash);
+        const transfer = data.transfers.find((t) => t.hash === txHash);
         const nft = await getNftMetadata(
             contractAddress,
             transfer.tokenId ?? transfer.erc721TokenId
