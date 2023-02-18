@@ -1,6 +1,8 @@
 require("dotenv").config();
 const { Network, Alchemy } = require("alchemy-sdk");
-const { WebhookClient, Colors } = require("discord.js");
+const { WebhookClient, Colors, hyperlink } = require("discord.js");
+const { EmbedBuilder } = require("@discordjs/builders");
+const { promisify } = require("util");
 
 const {
     contractAddress,
@@ -8,7 +10,8 @@ const {
     zeroTopic,
     fromAddress,
 } = require("./config");
-const { EmbedBuilder } = require("@discordjs/builders");
+
+const wait = promisify(setTimeout);
 
 const settings = {
     apiKey: process.env.ALCHEMY_API_KEY,
@@ -26,10 +29,12 @@ const getNftMetadata = async (contractAddress, tokenId) => {
     return {
         name: data.rawMetadata.name || data.title,
         image: data.media[0].gateway || data.media[0].raw,
+        tokenId: data.tokenId,
         collection: {
             name: data.contract.name,
             symbol: data.contract.symbol,
             url: data.contract.openSea.externalUrl,
+            image: data.contract.openSea?.imageUrl,
         },
     };
 };
@@ -56,18 +61,26 @@ const onMintEvent = async (e) => {
             transfer.tokenId ?? transfer.erc721TokenId
         );
 
+        await wait(2 * 60 * 1000);
         await webhook.send({
             embeds: [
                 new EmbedBuilder()
                     .setAuthor({
                         name: nft.collection.name ?? "Unknown Collection",
-                        url:
-                            nft.collection.url ??
-                            `https://etherscan.io/${contractAddress}`,
+                        url: `https://opensea.io/collection/villagers-of-xolo`,
                     })
                     .setColor(Colors.Blue)
-                    .setDescription(`${nft.name} just minted`)
+                    .setDescription(
+                        `${hyperlink(
+                            nft.name,
+                            `https://opensea.io/assets/ethereum/${contractAddress}/${nft.tokenId}`
+                        )} just minted`
+                    )
                     .setImage(nft.image)
+                    .setFooter({
+                        text: `Powered by ABC`,
+                        iconURL: nft.collection.image,
+                    })
                     .setTimestamp(),
             ],
         });
