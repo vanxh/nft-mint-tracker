@@ -23,6 +23,15 @@ const webhook = new WebhookClient({
     url: process.env.DISCORD_WEBHOOK_URL,
 });
 
+const truncateAddress = (address) => {
+  if (address.length < 10) {
+    throw new Error("Invalid Ethereum address.");
+  }
+  const prefix = address.slice(0, 6);
+  const suffix = address.slice(-4);
+  return `${prefix}...${suffix}`;
+};
+
 const getNftMetadata = async (contractAddress, tokenId) => {
     const data = await alchemy.nft.getNftMetadata(contractAddress, tokenId);
 
@@ -66,21 +75,18 @@ const onMintEvent = async (e) => {
             embeds: [
                 new EmbedBuilder()
                     .setAuthor({
-                        name: nft.collection.name ?? "Unknown Collection",
-                        url: `https://opensea.io/collection/villagers-of-xolo`,
+                        name: nft.name,
+                        url: `https://opensea.io/assets/ethereum/${contractAddress}/${nft.tokenId}`,
                     })
                     .setColor(Colors.Blue)
                     .setDescription(
-                        `${hyperlink(
-                            nft.name,
-                            `https://opensea.io/assets/ethereum/${contractAddress}/${nft.tokenId}`
-                        )} just minted`
+                        `${nft.name} just minted`
                     )
                     .addFields([
                         {
                             name: "Minter",
                             value: hyperlink(
-                                `${transfer.to}`,
+                                `${truncateAddress(transfer.to)}`,
                                 `https://etherscan.io/address/${transfer.to}`
                             ),
                         },
