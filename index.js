@@ -76,6 +76,15 @@ const onMintEvent = async (e) => {
                             `https://opensea.io/assets/ethereum/${contractAddress}/${nft.tokenId}`
                         )} just minted`
                     )
+                    .addFields([
+                        {
+                            name: "Minter",
+                            value: hyperlink(
+                                `${transfer.to}`,
+                                `https://etherscan.io/address/${transfer.to}`
+                            ),
+                        },
+                    ])
                     .setImage(nft.image)
                     .setFooter({
                         text: `Powered by ABC`,
